@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="light dark"><title>NeuroStudy · Il tuo spazio per imparare</title>
+  <link rel="stylesheet" href="/static/style.css"><script src="/static/app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Salta al contenuto</a>
+<div id="shell" hidden>
+  <aside class="sidebar">
+    <a href="#dashboard" class="brand"><span class="brand-icon" aria-hidden="true">N</span>Neuro<span>Study</span></a>
+    <div class="workspace">IL TUO SPAZIO DI STUDIO</div>
+    <nav aria-label="Principale">
+      <a href="#dashboard" data-nav="dashboard"><span aria-hidden="true">◫</span> Panoramica</a>
+      <a href="#library" data-nav="library"><span aria-hidden="true">▤</span> I miei materiali</a>
+      <a href="#quiz" data-nav="quiz"><span aria-hidden="true">✓</span> Quiz</a>
+      <a href="#cards" data-nav="cards"><span aria-hidden="true">▱</span> Flashcard</a>
+      <a href="#cases" data-nav="cases"><span aria-hidden="true">✳</span> Casi clinici</a>
+    </nav>
+    <div class="sidebar-bottom"><div class="small-note">Un concetto alla volta.<br>Un po’ più chiaro, ogni giorno.</div><button data-action="settings" class="text-btn">⚙ Impostazioni</button><button data-action="theme" class="text-btn">◐ Tema chiaro / scuro</button><button data-action="logout" class="text-btn">Esci</button><div class="educational">SOLO PER LA FORMAZIONE<br>Pazienti interamente simulati</div></div>
+  </aside>
+  <div class="content"><header class="topbar"><span id="breadcrumb">Il tuo percorso</span><div><span id="ai-status" class="badge"></span><button class="text-btn" data-action="settings" aria-label="Impostazioni">⚙</button><span class="avatar" aria-label="Profilo personale">NS</span></div></header><main id="main" tabindex="-1"></main><footer>NeuroStudy · Uno spazio personale per studiare neurologia. Nessun utilizzo clinico.</footer></div>
+</div>
+<main id="login-view" class="login"></main>
+<div id="toast" role="status" aria-live="polite" hidden></div>
+<dialog id="modal" aria-labelledby="modal-title"><div id="modal-body"></div><button class="close" data-action="close-modal" aria-label="Chiudi finestra">×</button></dialog>
+</body></html>
