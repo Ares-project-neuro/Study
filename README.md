@@ -2,6 +2,14 @@
 
 Web app personale in italiano per lo studio della neurologia. Libreria, quiz, flashcard e casi clinici con dashboard: dati persistenti, nessuna rigenerazione all'apertura. Solo formazione, pazienti simulati.
 
+## GitHub Pages · utilizzo dal sito su Windows e Android
+
+È disponibile una versione autonoma che funziona su **GitHub Pages**, senza Python sul PC e senza lasciare il PC acceso. Pubblicazione: **Settings → Pages → Source: GitHub Actions**, poi workflow **Publish NeuroStudy to GitHub Pages**. Istruzioni complete: **[docs/PAGES.md](docs/PAGES.md)**.
+
+Questa versione salva i dati **cifrati nel browser del dispositivo**, con backup cifrato esportabile/importabile. Non sincronizza automaticamente Windows e Android. Sono disponibili libreria PDF/Office/testo, quiz e flashcard estrattivi locali, ripetizione dilazionata, tre casi demo, dashboard e ripresa. L'IA resta disattivata su Pages: le credenziali non possono essere esposte nel sito statico. I dossier statici sono ispezionabili, quindi non si tratta di un esame protetto.
+
+Le istruzioni sotto descrivono invece la **versione con server Python**, conservata per usare un unico database condiviso su Wi-Fi e un servizio IA con chiave sul server. Pubblicare Pages non trasferisce automaticamente i dati già presenti in SQLite.
+
 ## Avvio su Windows con doppio clic
 
 Non aprire `app/static/index.html` come file: l'app usa anche un server Python e un database.

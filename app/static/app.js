@@ -7,6 +7,7 @@ const difficulty = `<option value="base">Base</option><option value="intermedia"
 const date = s => new Date(s).toLocaleString('it-IT', {dateStyle:'short',timeStyle:'short'});
 function notify(message) { const el=$('#toast'); el.textContent=message; el.hidden=false; clearTimeout(S.toast); S.toast=setTimeout(()=>el.hidden=true,6500); }
 async function api(path, body, method) {
+  if(globalThis.NeuroStudyPages)return globalThis.NeuroStudyPages.api(path,body,method);
   const init={method:method||(body===undefined?'GET':'POST'),credentials:'same-origin'};
   if(body!==undefined) {if(body instanceof FormData) init.body=body; else {init.headers={'Content-Type':'application/json'};init.body=JSON.stringify(body);}}
   const res=await fetch('/api'+path,init);let data;
@@ -31,10 +32,12 @@ async function boot() {
   S.status=await api('/status');
   if(!S.status.authenticated) {
     $('#shell').hidden=true;$('#login-view').hidden=false;
-    $('#login-view').innerHTML=`<div class="brand"><span class="brand-icon">N</span>Neuro<span>Study</span></div><div class="panel"><span class="eyebrow">IL TUO SPAZIO PERSONALE</span><h1>${S.status.setup_required?'Benvenuto, cominciamo.':'Bentornato.'}</h1><p class="muted">${S.status.setup_required?'Scegli una password di almeno 10 caratteri per proteggere materiali e progressi.':'Accedi per riprendere il tuo percorso di studio.'}</p><form id="login-form"><label>Password<input type="password" name="password" minlength="10" maxlength="256" autocomplete="${S.status.setup_required?'new-password':'current-password'}" required></label><button class="primary" type="submit">${S.status.setup_required?'Crea il tuo spazio':'Accedi'} →</button><p id="login-error" class="error" role="alert"></p></form></div><p class="muted">Solo formazione. Non caricare dati identificativi di pazienti reali.</p>`;return;
+    $('#login-view').innerHTML=`<div class="brand"><span class="brand-icon">N</span>Neuro<span>Study</span></div><div class="panel"><span class="eyebrow">IL TUO SPAZIO PERSONALE</span><h1>${S.status.setup_required?'Benvenuto, cominciamo.':'Bentornato.'}</h1><p class="muted">${S.status.pages?'Versione GitHub Pages: materiali e progressi sono cifrati e salvati solo in questo browser. Scegli o inserisci la password del tuo archivio; non è un account online e non esiste recupero password.':S.status.setup_required?'Scegli una password di almeno 10 caratteri per proteggere materiali e progressi.':'Accedi per riprendere il tuo percorso di studio.'}</p><form id="login-form"><label>Password<input type="password" name="password" minlength="10" maxlength="256" autocomplete="${S.status.setup_required?'new-password':'current-password'}" required></label><button class="primary" type="submit">${S.status.setup_required?'Crea il tuo spazio':'Accedi'} →</button><p id="login-error" class="error" role="alert"></p></form>${S.status.pages?`<div class="form-actions">${btn('pages-import','Importa un backup cifrato','','secondary')}</div><p class="muted">I dati non si sincronizzano tra PC e Android. Esporta un backup prima di cancellare dati del browser, cambiare dispositivo o indirizzo del sito.</p>`:''}</div><p class="muted">Solo formazione. Non caricare dati identificativi di pazienti reali.</p>`;return;
   }
   $('#login-view').hidden=true;$('#shell').hidden=false;
-  $('#ai-status').textContent=S.status.ai?'IA configurata':'Modalità locale · IA non configurata';
+  $('#ai-status').textContent=S.status.pages?'Pages · dati in questo browser':S.status.ai?'IA configurata':'Modalità locale · IA non configurata';
+  $('#pages-banner').hidden=!S.status.pages;
+  if(S.status.pages)$('#pages-banner').innerHTML=`<div class="notice"><strong>GitHub Pages · archivio su questo dispositivo.</strong> Nessuna sincronizzazione automatica con altri browser. <span>IA non disponibile in questa modalità.</span><div class="row">${btn('pages-backup','Esporta backup cifrato','','small')}${btn('pages-import','Importa backup','','small')}</div></div>`;
   if(!S.options.actions) S.options=await api('/case-options');
   await route();
 }
@@ -170,12 +173,19 @@ function renderAssessment() {
 }
 async function settingsModal() {
   const s=await api('/settings');
-  modal('Il tuo ritmo di studio',`<form id="settings-form"><label>Carico massimo flashcard al giorno<input type="number" name="daily_limit" min="1" max="200" value="${s.daily_limit}" required></label><label>Obiettivo giornaliero · flashcard valutate<input type="number" name="daily_goal" min="1" max="240" value="${s.daily_goal}" required></label><p class="muted">Giorno di studio: fuso Europe/Rome. Il carico include demo; l’obiettivo della dashboard conta solo le tue schede.</p><button type="submit" class="primary">Salva preferenze</button></form><hr><h3>Aspetto e dati</h3><div class="row">${btn('theme','◐ Cambia tema','','')}${btn('export','Esporta dati','','')}${btn('logout','Esci','','')}</div><h3>Servizio IA</h3><p>${S.status.ai?'Configurato sul server.':'Non configurato. Imposta STUDY_AI_KEY sul server e riavvia; vedi README. Quiz e flashcard estrattivi e casi demo funzionano senza chiave.'}</p><p class="muted">L’app è personale e richiede una password. Non è predisposta per dati clinici reali o per uso multiutente.</p>`);
+  modal('Il tuo ritmo di studio',`<form id="settings-form"><label>Carico massimo flashcard al giorno<input type="number" name="daily_limit" min="1" max="200" value="${s.daily_limit}" required></label><label>Obiettivo giornaliero · flashcard valutate<input type="number" name="daily_goal" min="1" max="240" value="${s.daily_goal}" required></label><p class="muted">Giorno di studio: fuso Europe/Rome. Il carico include demo; l’obiettivo della dashboard conta solo le tue schede.</p><button type="submit" class="primary">Salva preferenze</button></form><hr><h3>Aspetto e dati</h3><div class="row">${btn('theme','◐ Cambia tema','','')}${btn('export','Esporta dati','','')}${btn('logout','Esci','','')}</div><h3>Servizio IA</h3><p>${S.status.pages?'GitHub Pages non esegue il servizio IA. In questa versione sono disponibili estrazione locale e casi demo. Per usare l’IA conserva la versione Python con un servizio server; non inserire chiavi IA nel sito statico.':S.status.ai?'Configurato sul server.':'Non configurato. Imposta STUDY_AI_KEY sul server e riavvia; vedi README. Quiz e flashcard estrattivi e casi demo funzionano senza chiave.'}</p><p class="muted">L’app è personale e richiede una password. Non è predisposta per dati clinici reali o per uso multiutente.</p>`);
 }
 async function doAction(action,id) {
+  if(action==='pages-backup'){
+    const data=await globalThis.NeuroStudyPages.vault.backup();
+    const url=URL.createObjectURL(new Blob([JSON.stringify(data)],{type:'application/json'}));
+    const link=document.createElement('a');link.href=url;link.download='neurostudy-backup-'+new Date().toISOString().slice(0,10)+'.json';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
+    notify('Backup cifrato esportato. Per importarlo servirà la password di questo archivio.');return;
+  }
+  if(action==='pages-import')return modal('Importa un archivio cifrato',`<form id="pages-import-form"><label>Backup NeuroStudy cifrato<input type="file" name="file" accept=".json,application/json" required></label><label>Password usata per creare il backup<input type="password" name="password" minlength="10" maxlength="256" autocomplete="off" required></label><label class="check"><input name="replace" type="checkbox" required>Confermo di sostituire l’archivio di questo browser con quello del backup.</label><div class="notice warn">Esporta prima un backup dei dati attuali. L’importazione sostituisce i dati, senza unire archivi di due dispositivi. La password del backup diventerà quella da usare qui.</div><button type="submit" class="primary">Verifica password e importa</button></form>`);
   if(action==='close-modal')return closeModal();
   if(action==='theme'){const theme=document.documentElement.dataset.theme==='dark'?'light':'dark';document.documentElement.dataset.theme=theme;localStorage.setItem('neuro-theme',theme);return;}
-  if(action==='logout'){await saveNotes();await api('/logout',{});closeModal();return boot();}
+  if(action==='logout'){await saveNotes();await api('/logout',{});S.docs=[];S.questions=[];S.cards=[];S.active=null;$('#main').innerHTML='';closeModal();return boot();}
   if(action==='settings')return settingsModal();
   if(action==='demo'){const d=await api('/demo',{});notify(d.message);return route();}
   if(action==='export'){const data=await api('/export');const url=URL.createObjectURL(new Blob([JSON.stringify(data,null,2)],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='neurostudy-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Esportati dati e fonti. Conserva il file in un luogo protetto.');return;}
@@ -213,6 +223,11 @@ document.addEventListener('click',async e=>{
 document.addEventListener('submit',async e=>{
   e.preventDefault();const form=e.target;const f=formData(form);const submit=form.querySelector('[type=submit]');if(submit)submit.disabled=true;
   try {
+    if(form.id==='pages-import-form'){
+      if(!f.replace)throw Error('Conferma la sostituzione dell’archivio.');
+      await globalThis.NeuroStudyPages.vault.restore(new FormData(form).get('file'),f.password);
+      S.active=null;closeModal();notify('Archivio importato e sbloccato. I dati degli altri dispositivi restano invariati.');return boot();
+    }
     if(form.id==='login-form'){await api('/status');await api('/login',{password:f.password});return boot();}
     if(form.id==='upload-form'){await api('/documents',new FormData(form));closeModal();notify('Testo estratto e salvato. Controlla gli avvisi del documento.');await library();}
     if(form.id==='source-generate-form'){const selected=[...new FormData(form).getAll('section')];if(!selected.length)throw Error('Seleziona almeno una sezione');return generateModal([form.dataset.id],{[form.dataset.id]:selected});}
