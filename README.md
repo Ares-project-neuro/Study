@@ -2,7 +2,20 @@
 
 Web app personale in italiano per lo studio della neurologia. Libreria, quiz, flashcard e casi clinici con dashboard: dati persistenti, nessuna rigenerazione all'apertura. Solo formazione, pazienti simulati.
 
-## Avvio
+## Avvio su Windows con doppio clic
+
+Non aprire `app/static/index.html` come file: l'app usa anche un server Python e un database.
+
+1. Scarica **l'intero progetto** dal ramo `codex/neurostudy-v1` su GitHub: **Code → Download ZIP**. Estrai lo ZIP in una cartella.
+2. Installa Python **3.12 o successivo** da https://www.python.org/downloads/ se manca. Durante l'installazione abilita **Add Python to PATH**.
+3. Nella cartella estratta fai doppio clic su **Avvia NeuroStudy.cmd**. Al primo avvio scarica le dipendenze, poi apre l'app nel browser.
+4. Scegli la password nella pagina dell'app. Mantieni aperta la finestra del programma durante lo studio; Ctrl+C arresta il server.
+
+Per gli avvii successivi usa lo stesso file nella stessa cartella: i tuoi dati rimangono in `.data`. Serve una connessione per la prima installazione; lo studio locale/demo non richiede IA. Se la porta 8000 è già occupata, la finestra di avvio lo segnala senza aprire altri servizi.
+
+Su macOS/Linux, dalla cartella del progetto: `python3 start.py`. Il launcher prepara l'ambiente e apre il browser dopo aver verificato la disponibilità del servizio. Opzioni: `--no-browser` e `--port 8001`.
+
+## Avvio manuale
 
 Richiede Python 3.12+. Non servono Node o un servizio database per usare l'app.
 
