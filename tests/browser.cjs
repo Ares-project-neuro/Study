@@ -1,5 +1,5 @@
 // End-to-end smoke checks against an isolated database and a real browser.
-const {chromium}=require('playwright');
+const {chromium,devices}=require('playwright');
 const {spawn}=require('node:child_process');
 const fs=require('node:fs');
 const os=require('node:os');
@@ -8,7 +8,8 @@ const assert=require('node:assert/strict');
 const data=fs.mkdtempSync(path.join(os.tmpdir(),'neurostudy-browser-'));
 const port=process.env.STUDY_TEST_PORT||'8011';
 const base=`http://127.0.0.1:${port}`;
-const server=spawn('.venv/bin/python',['-m','uvicorn','app.main:app','--host','127.0.0.1','--port',port],{
+const python=process.platform==='win32'?'.venv/Scripts/python.exe':'.venv/bin/python';
+const server=spawn(python,['-m','uvicorn','app.main:app','--host','127.0.0.1','--port',port],{
   env:{...process.env,STUDY_DATA_DIR:data,STUDY_AI_KEY:'',STUDY_PASSWORD:''},stdio:['ignore','ignore','pipe']});
 let log='';server.stderr.on('data',s=>log+=s);
 let browser;
@@ -88,6 +89,37 @@ let browser;
   assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
   await page.getByRole('button',{name:'Chiudi finestra'}).click();
   await page.screenshot({path:'test-results/dashboard-dark-mobile.png',fullPage:true});
+  // Separate Android-like browser session against the same persistent server.
+  const android=await browser.newContext({...devices['Pixel 7'],locale:'it-IT',colorScheme:'light'});
+  const phone=await android.newPage();phone.on('pageerror',e=>errors.push(e.message));
+  await phone.goto(base);
+  await phone.getByLabel('Password',{exact:true}).fill('browser-test-password-123');
+  await phone.locator('#login-form button').tap();
+  await phone.getByRole('heading',{name:'Ogni giorno, un passo avanti.'}).waitFor();
+  assert.equal(await phone.evaluate(()=>navigator.maxTouchPoints>0),true);
+  assert.equal(await phone.evaluate(()=>document.documentElement.scrollWidth>innerWidth),false,'overflow Android');
+  await phone.getByRole('link',{name:'Flashcard',exact:true}).tap();
+  await phone.getByText('1 ripassi',{exact:false}).waitFor();
+  await phone.getByRole('link',{name:'I miei materiali',exact:true}).tap();
+  await phone.getByRole('heading',{name:'Appunti browser.txt',exact:true}).waitFor();
+  await phone.getByRole('link',{name:'Casi clinici',exact:true}).tap();
+  await phone.getByRole('button',{name:'Apri il caso'}).tap();
+  await phone.getByRole('heading',{name:'Un paziente. Il tuo ragionamento.'}).waitFor();
+  await phone.getByRole('button',{name:'Esordio e andamento dei sintomi'}).tap();
+  await phone.locator('.event').first().waitFor();
+  await phone.getByLabel('Ipotesi, localizzazione e differenziali').fill('Appunti da Android condivisi con Windows');
+  await phone.getByRole('link',{name:'Salva ed esci'}).tap();
+  await phone.getByRole('heading',{name:'Ogni giorno, un passo avanti.'}).waitFor();
+  const phoneCase=await phone.locator('a[href^="#session/case/"]').first().getAttribute('href');
+  await phone.screenshot({path:'test-results/android-touch.png',fullPage:true});
+  await page.goto(base+'/'+phoneCase);
+  await page.getByLabel('Ipotesi, localizzazione e differenziali').waitFor();
+  assert.equal(await page.locator('#case-notes').inputValue(),'Appunti da Android condivisi con Windows');
+  await android.close();
   assert.deepEqual(errors,[]);
-  console.log('Browser: upload → generazione → quiz → flashcard → ripasso → caso → ripresa → valutazione; mobile e tema scuro: OK');
-})().catch(e=>{console.error(e,log);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();server.kill('SIGTERM');fs.rmSync(data,{recursive:true,force:true});});
+  console.log('Browser: percorsi completi desktop, Android emulato touch, dati condivisi, ripresa e tema scuro: OK');
+})().catch(e=>{console.error(e,log);process.exitCode=1;}).finally(async()=>{
+  if(browser)await browser.close();
+  if(server.exitCode===null){await new Promise(resolve=>{server.once('exit',resolve);server.kill('SIGTERM');});}
+  fs.rmSync(data,{recursive:true,force:true});
+});

@@ -23,6 +23,19 @@ TEXT = ('La miastenia gravis presenta debolezza fluttuante e affaticabilità mus
         'La diagnosi richiede integrazione della storia clinica e degli accertamenti neurofisiologici.')
 
 
+def test_rome_timezone_without_system_database():
+    # Windows has no IANA timezone database. Force package-only lookup on every OS.
+    import subprocess
+    import sys
+    import os
+    result = subprocess.run([sys.executable, '-c',
+        'from zoneinfo import ZoneInfo; from datetime import datetime; '
+        'assert datetime(2026, 1, 1, tzinfo=ZoneInfo("Europe/Rome")).utcoffset().total_seconds() == 3600; '
+        'assert datetime(2026, 7, 1, tzinfo=ZoneInfo("Europe/Rome")).utcoffset().total_seconds() == 7200'],
+        env={**os.environ, 'PYTHONTZPATH': ''}, capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr
+
+
 def upload(client, content=TEXT, name='Appunti.txt', **fields):
     r = client.post('/api/documents', files={'file': (name, content.encode())}, data={'topic': 'Giunzione', **fields})
     assert r.status_code == 200, r.text

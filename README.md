@@ -13,7 +13,23 @@ Non aprire `app/static/index.html` come file: l'app usa anche un server Python e
 
 Per gli avvii successivi usa lo stesso file nella stessa cartella: i tuoi dati rimangono in `.data`. Serve una connessione per la prima installazione; lo studio locale/demo non richiede IA. Se la porta 8000 è già occupata, la finestra di avvio lo segnala senza aprire altri servizi.
 
-Su macOS/Linux, dalla cartella del progetto: `python3 start.py`. Il launcher prepara l'ambiente e apre il browser dopo aver verificato la disponibilità del servizio. Opzioni: `--no-browser` e `--port 8001`.
+Su macOS/Linux, dalla cartella del progetto: `python3 start.py`. Il launcher prepara l'ambiente e apre il browser dopo aver verificato la disponibilità del servizio. Opzioni: `--no-browser`, `--port 8001` e `--lan` per l'accesso dalla rete locale.
+
+## Android sulla stessa rete Wi-Fi di Windows
+
+Android non richiede Python o installazione: usa Chrome aggiornato sul telefono. Il server rimane sul PC Windows; telefono e PC leggono lo **stesso database**, quindi materiali, ripassi, casi e appunti sono condivisi. Non copiare HTML sul telefono e non usare `localhost` sul telefono: indicherebbe il telefono stesso.
+
+1. **Una sola volta:** avvia `Avvia NeuroStudy.cmd` sul PC e scegli la password nella pagina dell'app. Poi arresta il programma con Ctrl+C.
+2. Avvia **Avvia NeuroStudy WiFi.cmd**. L'avvio Wi-Fi verifica prima che esista una password; se manca, non espone il server in rete e mostra le istruzioni.
+3. Se Windows Firewall lo richiede, consenti Python **solo sulla rete privata** di casa. Il launcher non cambia il firewall automaticamente.
+4. Collega Android alla **stessa rete Wi-Fi** del PC. Nella finestra di avvio appariranno uno o più indirizzi locali del PC: apri quello della rete Wi-Fi nel browser del telefono, poi inserisci la stessa password. Esempio di formato: `http://IP-DEL-PC:8000`. Non usare `0.0.0.0` come indirizzo nel browser.
+5. Mantieni acceso il PC, senza sospensione, con il programma aperto durante lo studio. Le modifiche sono salvate subito sul PC; ricaricando l'altro dispositivo trovi gli aggiornamenti. Non c'è un aggiornamento automatico in tempo reale fra due pagine già aperte.
+
+Se non si collega: verifica rete privata, autorizzazione firewall per Python e indirizzo IPv4 della scheda Wi-Fi con `ipconfig`. Reti ospiti con isolamento dei dispositivi possono impedirlo; VPN e altre schede possono produrre indirizzi non raggiungibili dal telefono. Il launcher elenca candidati locali senza inviare dati a servizi esterni.
+
+L'accesso locale usa HTTP: serve una rete fidata, senza dati identificativi di pazienti. Non aprire porte del router per esporlo su Internet. Non funziona quando il PC è spento o il telefono è fuori rete: per quell'uso servirà un server online con HTTPS e volume persistente.
+
+L'interfaccia include layout mobile e controlli touch. I test usano Chromium con emulazione Android Pixel 7 (touch, viewport e user agent) e un secondo accesso allo stesso database; non equivalgono a una prova su uno smartphone fisico. La CI esegue i controlli anche su Windows; gli esiti remoti vanno consultati in GitHub Actions.
 
 ## Avvio manuale
 
@@ -116,7 +132,7 @@ npm run test:browser
 CHROMIUM_PATH=/usr/bin/chromium npm run test:browser
 ```
 
-Il test avvia un server su porta 8011 e un database temporaneo, esegue caricamento → generazione → quiz → flashcard → ripasso e caso → ripresa → valutazione, verifica mobile e tema scuro. Screenshot in `test-results/`, ignorata da Git. `STUDY_TEST_PORT` permette di cambiare la porta. Le chiamate IA reali non sono state verificate senza credenziali: i test dei contratti usano risposte simulate, senza costi o invio di materiali.
+Il test avvia un server su porta 8011 e un database temporaneo, esegue caricamento → generazione → quiz → flashcard → ripasso e caso → ripresa → valutazione, verifica mobile, tema scuro e una seconda sessione Android emulata con tocchi e dati condivisi. Usa `.venv/Scripts/python.exe` su Windows e `.venv/bin/python` su Linux/macOS. Screenshot in `test-results/`, ignorata da Git. `STUDY_TEST_PORT` permette di cambiare la porta. Le chiamate IA reali non sono state verificate senza credenziali: i test dei contratti usano risposte simulate, senza costi o invio di materiali.
 
 ## Architettura
 
